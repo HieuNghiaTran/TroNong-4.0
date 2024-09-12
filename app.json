@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "splash": {
       "image": "./src/Images/Android.jpg",
-      "resizeMode": "cover"
+      "resizeMode": "cotain"
     },
     "plugins": [
       "expo-font"

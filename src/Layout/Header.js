@@ -1,12 +1,18 @@
-import { Image, StyleSheet, View, Text,StatusBar } from "react-native";
-import { Feather } from '@expo/vector-icons';
+import { Image, StyleSheet, View, Text, StatusBar, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { UserContext } from "../Context/authContext";
+import { useContext } from "react";
+
 const Header = () => {
+    const { user } = useContext(UserContext);
+    const navigation = useNavigation();
+
     const styles = StyleSheet.create({
         headerContainer: {
             flexDirection: "row",
             justifyContent: "space-evenly",
             alignItems: "center",
-            height: "10%",
+            height: "10.2%",
             width: "100%",
             borderBottomLeftRadius: 20,
             borderBottomRightRadius: 20,
@@ -35,28 +41,23 @@ const Header = () => {
             width: "150%",
             height: "150%",
             marginLeft: 10,
-            margin:"auto",
+            margin: "auto",
             resizeMode: "contain"
         },
         accountContainer: {
             flexDirection: "column",
             alignItems: "flex-end",
             marginRight: 10,
-
         },
         text: {
             textAlign: "right",
-
             color: "#009432"
         },
         textName: {
             textAlign: "right",
             fontWeight: "bold",
             color: "#009432"
-
         },
-
-
         imageAvatar: {
             width: 50,
             height: 50,
@@ -65,30 +66,28 @@ const Header = () => {
         }
     });
 
+    const avatar = user && user.avatar ? user.avatar : "https://res.cloudinary.com/dofj1px4t/image/upload/v1718769506/Tr%E1%BB%A3%20N%C3%B4ng%204.0/logo-1_k0r80f.png";
+    const fullname = user && user.fullname ? user.fullname : "Đăng nhập";
+
     return (
         <View style={styles.headerContainer}>
             <View style={styles.logoContainer}>
                 <Image
-                    source={{ uri: "https://res.cloudinary.com/dofj1px4t/image/upload/v1718769506/Tr%E1%BB%A3%20N%C3%B4ng%204.0/logo-1_k0r80f.png" }}
+                    source={{ uri: avatar }}
                     style={styles.imageLogo}
                 />
             </View>
 
-            <View style={styles.actionContainer}>
+            <TouchableOpacity style={styles.actionContainer} onPress={() => fullname !== "Đăng nhập" ? navigation.navigate('Profile') : navigation.navigate('Login')}>
                 <View style={styles.accountContainer}>
-                    <Text style={styles.text}>Xin chào,</Text>
-                    <Text style={styles.textName}>Trần Hiếu Nghĩa</Text>
+                    {fullname !== "Đăng nhập" ? <Text style={styles.text}>Xin chào,</Text> : null}
+                    <Text style={styles.textName}>{fullname}</Text>
                 </View>
                 <Image
                     source={{ uri: "https://res.cloudinary.com/dofj1px4t/image/upload/v1718762351/Tr%E1%BB%A3%20N%C3%B4ng%204.0/pngwing.com_vnwxtx.png" }}
                     style={styles.imageAvatar}
                 />
-
-                <View>
-
-
-                </View>
-            </View>
+            </TouchableOpacity>
         </View>
     );
 };

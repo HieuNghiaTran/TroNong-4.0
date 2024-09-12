@@ -1,17 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { getAllHastag } from '../Services/HastagServies';
 
-const Hastag = () => {
-    let list = ["caphe", "giaitri", "lua", "benhcualua", "gialua", "meovat"];
+const Hastag = ({ onHashtagPress }) => {
+    const [list, setList] = useState([]);
+    useEffect(() => {
+        fetchData()
 
-    let styles = StyleSheet.create({
+    }, [])
+    const fetchData = async () => {
+        let res = await getAllHastag()
+        setList(res.data)
+    }
+    const styles = StyleSheet.create({
         scrollViewContainer: {
             backgroundColor: "#fff",
             marginTop: 5,
             padding: 10,
-            height:"12%"
+            height: 80,
         },
         hastagContainer: {
             flexDirection: "row",
@@ -26,7 +35,6 @@ const Hastag = () => {
             borderRadius: 4,
             flexDirection: "row",
             alignItems: "center",
-
         },
         icon: {
             marginRight: 5,
@@ -34,13 +42,21 @@ const Hastag = () => {
     });
 
     return (
-        <ScrollView horizontal={true} style={styles.scrollViewContainer} showsHorizontalScrollIndicator={false}>
+        <ScrollView
+            horizontal={true}
+            style={styles.scrollViewContainer}
+            showsHorizontalScrollIndicator={false}
+        >
             <View style={styles.hastagContainer}>
                 {list.map((item, index) => (
-                    <View key={index} style={styles.itemhastag}>
+                    <TouchableOpacity
+                        key={index}
+                        style={styles.itemhastag}
+                        onPress={() => onHashtagPress(item._id)}
+                    >
                         <AntDesign name="tags" size={24} color="gray" style={styles.icon} />
-                        <Text style={{fontSize:16}}>{item}</Text>
-                    </View>
+                        <Text style={{ fontSize: 16 }}>{item.hastag}</Text>
+                    </TouchableOpacity>
                 ))}
             </View>
         </ScrollView>

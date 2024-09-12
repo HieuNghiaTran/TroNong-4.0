@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TextInput, TouchableOpacity, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TextInput, TouchableOpacity, StatusBar, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from "@react-navigation/native";
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -7,36 +7,75 @@ import { Dropdown } from 'react-native-element-dropdown';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import ModalSuccess from './ModalSucces';
+import { GetProvinceData } from '../Services/Location';
+import { UpdateRicePrice, getRiceName } from '../Services/RiceServies';
 
 const ContributePrice = () => {
     const navigation = useNavigation();
-    const [content, setContent] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [price, setPrice] = useState('');
     const [isFocus, setIsForus] = useState(false);
     const [value, setValue] = useState(null);
+    const [valueTinh, setValueTinh] = useState(null)
     const [isShowModal, setIsShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const data = [
-        { label: 'Item 1', value: '1' },
-        { label: 'Item 2', value: '2' },
-        { label: 'Item 3', value: '3' },
-        { label: 'Item 4', value: '4' },
-        { label: 'Item 5', value: '5' },
-        { label: 'Item 6', value: '6' },
-        { label: 'Item 7', value: '7' },
-        { label: 'Item 8', value: '8' },
-    ];
+    const [dataProvince, setDataProvince] = useState([])
+    const [dataRiceName, setDataRiceName] = useState([])
+    const [temp, setTemp] = useState('');
+
+    useEffect(() => {
+
+
+        fetchdataprovice();
+        fetchdataricename()
+
+
+    }, [])
+
+    const fetchdataprovice = async () => {
+        try {
+            let res = await GetProvinceData();
+            let temp = [];
+            res.data.data.forEach(element => {
+                temp.push({
+                    full_name: element.full_name,
+                    id: element.id,
+                });
+            });
+            setDataProvince(temp);
+
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+
+    const fetchdataricename = async () => {
+        try {
+            let res = await getRiceName();
+            let temp = [];
+            res.data.forEach(element => {
+                temp.push({
+                    name: element.rice_name,
+                    id: element._id,
+                });
+            });
+            setDataRiceName(temp);
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
     const renderItem = item => (
         <View style={styles.item}>
             <Text style={[isFocus && { color: 'blue' }]}>
-                {item.label}
+                {item.full_name || item.name}
             </Text>
-            {item.value === value && (
+            {item.id === value && (
                 <FontAwesome name="check-circle" size={24} color="green" />
             )}
         </View>
     );
+
 
     const formatCurrency = (value) => {
         const number = parseInt(value.replace(/,/g, ''));
@@ -45,30 +84,36 @@ const ContributePrice = () => {
     };
 
     const handlePriceChange = (text) => {
-        setSearchQuery(formatCurrency(text));
+        setTemp(text)
+        setPrice(formatCurrency(text));
     };
 
     const closeModal = () => {
         setIsShowModal(false);
     };
 
-useEffect(()=>{
+    useEffect(() => {
 
-    if (!isShowModal) {
+        if (!isShowModal) {
 
-        //navigation.goBack()
+            //navigation.goBack()
 
 
-    }
+        }
 
-},[isShowModal])
-    const handleShare = () => {
+    }, [isShowModal])
+    const handleShare = async () => {
         setIsLoading(true)
+
+        let data = {
+            id_rice: value.id,
+            position: valueTinh,
+            price: price,
+            old_price: 0,
+            date: new Date(),
+        }
+        let res = await UpdateRicePrice(data);
         setIsShowModal(true)
-      
-
-
-
         setIsLoading(false)
     }
 
@@ -82,7 +127,18 @@ useEffect(()=>{
                 </TouchableOpacity>
             </View>
 
+
             <ScrollView style={styles.scrollView}>
+                <View style={styles.calendarContainer}>
+                    <Image
+                        source={{ uri: "https://res.cloudinary.com/dofj1px4t/image/upload/v1718866119/products/calendar_cmeqbu.png" }}
+                        style={styles.calen}
+                    />
+                    <Text style={styles.text}>Hôm nay: {new Date().toLocaleDateString('vi-VN')}</Text>
+                </View>
+
+
+
                 <Text style={styles.label}>Loại</Text>
                 <Dropdown
                     style={styles.dropdown}
@@ -90,18 +146,20 @@ useEffect(()=>{
                     selectedTextStyle={styles.selectedTextStyle}
                     inputSearchStyle={styles.inputSearchStyle}
                     iconStyle={styles.iconStyle}
-                    data={data}
+                    data={dataRiceName}
                     search
                     maxHeight={300}
-                    labelField="label"
-                    valueField="value"
+                    labelField="name"
+                    valueField="id"
                     placeholder="Chọn giống lúa"
                     searchPlaceholder="Search..."
                     value={value}
-                    onChange={item => setValue(item.value)}
+                    onChange={item => setValue(item)}
                     renderLeftIcon={() => <AntDesign style={styles.icon} color="black" name="Safety" size={20} />}
                     renderItem={renderItem}
                 />
+
+
 
                 <Text style={styles.label}>Khu vực</Text>
                 <Dropdown
@@ -110,35 +168,15 @@ useEffect(()=>{
                     selectedTextStyle={styles.selectedTextStyle}
                     inputSearchStyle={styles.inputSearchStyle}
                     iconStyle={styles.iconStyle}
-                    data={data}
+                    data={dataProvince}
                     search
                     maxHeight={300}
-                    labelField="label"
-                    valueField="value"
+                    labelField="full_name"
+                    valueField="id"
                     placeholder="Chọn tỉnh thành"
                     searchPlaceholder="Search..."
-                    value={value}
-                    onChange={item => setValue(item.value)}
-                    renderLeftIcon={() => <AntDesign style={styles.icon} color="black" name="Safety" size={20} />}
-                    renderItem={renderItem}
-                />
-
-                <Text style={styles.label}>Khu vực</Text>
-                <Dropdown
-                    style={styles.dropdown}
-                    placeholderStyle={styles.placeholderStyle}
-                    selectedTextStyle={styles.selectedTextStyle}
-                    inputSearchStyle={styles.inputSearchStyle}
-                    iconStyle={styles.iconStyle}
-                    data={data}
-                    search
-                    maxHeight={300}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Chọn quận/huyện"
-                    searchPlaceholder="Search..."
-                    value={value}
-                    onChange={item => setValue(item.value)}
+                    value={valueTinh}
+                    onChange={item => setValueTinh(item.name)}
                     renderLeftIcon={() => <AntDesign style={styles.icon} color="black" name="Safety" size={20} />}
                     renderItem={renderItem}
                 />
@@ -148,29 +186,35 @@ useEffect(()=>{
                     <View style={styles.searchContainer}>
                         <TextInput
                             style={styles.input}
-                            onChangeText={setSearchQuery}
-                            value={searchQuery}
+                            onChangeText={setPrice}
+                            value={price}
                             placeholder="Nhập giá"
                             placeholderTextColor="#666"
-                            onFocus={() => setIsForus(true)}
+                            onFocus={() => {
+
+                                setPrice(temp);
+
+                                setIsForus(true)
+                            }}
                             onBlur={() => {
                                 setIsForus(false);
-                                handlePriceChange(searchQuery);
+                                handlePriceChange(price);
                             }}
                             keyboardType="numeric"
                         />
                         {isFocus && (
-                            <Feather onPress={() => setSearchQuery('')} name="x" size={24} color="gray" style={{ position: "absolute", right: 10 }} />
+                            <Feather onPress={() => price('')} name="x" size={24} color="gray" style={{ position: "absolute", right: 10 }} />
                         )}
                     </View>
                 </View>
 
-                <TouchableOpacity style={styles.submitButton} onPress={handleShare}>
-                    <Text style={styles.submitButtonText}>Chia sẻ</Text>
-                </TouchableOpacity>
+
 
 
             </ScrollView>
+            <TouchableOpacity style={styles.submitButton} onPress={handleShare}>
+                <Text style={styles.submitButtonText}>Chia sẻ</Text>
+            </TouchableOpacity>
             <ModalSuccess
 
                 isShow={isShowModal}
@@ -183,6 +227,29 @@ useEffect(()=>{
 };
 
 const styles = StyleSheet.create({
+    calendarContainer: {
+        marginHorizontal: 16,
+        marginTop: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    weatherContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    calen: {
+        width: 30,
+        height: 30,
+        marginRight: 10,
+    },
+    text: {
+        color: '#444444',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+
+
+
     container: {
         flex: 1,
         backgroundColor: '#f7f7f7',
@@ -293,6 +360,8 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 12,
         alignItems: 'center',
+        //position: "absolute",
+        //bottom: 20
 
     },
     submitButtonText: {

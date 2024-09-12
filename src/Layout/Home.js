@@ -70,7 +70,7 @@ const Home = () => {
                             />
                             <Text style={styles.itemName}>Báo cáo chi tiêu</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.item}>
+                        <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('TaskScheduler')}>
                             <Image
                                 source={{ uri: "https://res.cloudinary.com/dofj1px4t/image/upload/v1718866119/products/calendar_cmeqbu.png" }}
                                 style={styles.imageItem}
@@ -133,14 +133,14 @@ const Home = () => {
                             />
                             <Text style={styles.itemName}>Xem giá lúa</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.item}>
+                        {/* <TouchableOpacity style={styles.item}>
                             <Image
                                 source={{ uri: "https://res.cloudinary.com/dofj1px4t/image/upload/v1718760633/Tr%E1%BB%A3%20N%C3%B4ng%204.0/448386520_491883306832482_2003684293317959570_n_wzh4yp.jpg" }}
                                 style={styles.imageItem}
                             />
                             <Text style={styles.itemName}>Báo cáo giá</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.item}>
+                        </TouchableOpacity> */}
+                        <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('FarmMaket')}>
                             <Image
                                 source={{ uri: "https://res.cloudinary.com/dofj1px4t/image/upload/v1718867731/products/commodity_exh15p.png" }}
                                 style={styles.imageItem}

@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -7,12 +7,12 @@ import Feather from '@expo/vector-icons/Feather';
 import ModalInformLogin from './ModalInformLogin';
 import * as ImagePicker from 'expo-image-picker';
 import Detection from '../Services/DiseaseDetectionServices';
+import { UserContext } from '../Context/authContext';
 const CameraAi = () => {
+
+    const { user, login, isLogin } = useContext(UserContext);
     const navigation = useNavigation();
-    const [isLogin, setIsLogin] = useState(false)
-
     const [isShowModal, setIsShowModal] = useState(false);
-
     const closeModal = () => {
         setIsShowModal(false);
     };

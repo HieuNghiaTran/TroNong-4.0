@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { StatusBar, StyleSheet, Text, TouchableOpacity, View, FlatList, TextInput, Image } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -11,91 +11,31 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Hastag from './Hastag';
 import Post from './Post';
-import { UserContext } from '../Context/authContext';
-import { ScrollView } from 'react-native-gesture-handler';
-import { fillterArticle, getAllArticle, search } from '../Services/ArticleServices';
-import Loading from './Loading';
-import LottieView from 'lottie-react-native';
-import { useRoute } from '@react-navigation/native';
-const Forum = () => {
-    const { isLogin } = useContext(UserContext)
+
+const FarmMaket = () => {
     const navigation = useNavigation();
+    const [isLogin, setIsLogin] = useState(false);
     const [isShowModal, setIsShowModal] = useState(false);
-    const [isFocus, setIsFocus] = useState(false);
+    const [isFocus, setIsForus] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [list, setList] = useState([])
-    const [isloading, setIsLoading] = useState(false)
-    const route = useRoute();
-    let { isReload } = route.params || false;
-    useEffect(() => { if (isLogin) setIsShowModal(false) }, [isLogin])
-    useEffect(() => {
-        setIsLoading(true)
-        handleGetAllArticle().finally(() => {
-            setIsLoading(false);
-        });
-    }, [])
-    const handleGetAllArticle = async () => {
-        try {
-            let response = await getAllArticle();
-            if (response && response.data) {
-                setList(response.data);
-            }
-
-        } catch (error) {
-
-            console.error("Failed to fetch articles:", error);
-        }
-    }
+    const [posts, setPosts] = useState([
+        { id: 1, title: 'Bài viết 1', content: 'Nội dung bài viết 1' },
+        { id: 2, title: 'Bài viết 2', content: 'Nội dung bài viết 2' },
+        { id: 3, title: 'Bài viết 3', content: 'Nội dung bài viết 3' },
+        { id: 4, title: 'Bài viết 4', content: 'Nội dung bài viết 4' },
+        { id: 5, title: 'Bài viết 5', content: 'Nội dung bài viết 5' },
+    ]);
 
     const closeModal = () => {
         setIsShowModal(false);
     };
 
+    const renderItem = ({ item }) => (
+        <Post title={item.title} content={item.content} />
+    );
 
-    const notLogin = () => {
-        if (!isLogin) setIsShowModal(true)
-
-    }
-
-    useEffect(() => {
-        if (isReload) {
-
-            setIsLoading(true)
-            handleGetAllArticle().finally(() => {
-                setIsLoading(false);
-            });
-            isReload = false
-        }
-
-
-    }, [isReload])
-
-
-
-    const onHashtagPress = async (id) => {
-        setIsLoading(true)
-        let res = await fillterArticle(id);
-        res.data && setList(res.data)
-        setIsLoading(false)
-
-
-    }
-
-    const handleSearchArticle = async () => {
-        setIsLoading(true)
-        let res = await search(searchQuery)
-        console.log(res.data);
-        setList(res.data)
-        setIsLoading(false)
-        setSearchQuery('')
-
-
-    }
     return (
         <>
-
-
-
             <View style={styles.header}>
                 <View style={{ flexDirection: "row", justifyContent: 'space-between', alignItems: "center" }}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
@@ -118,10 +58,8 @@ const Forum = () => {
                         onChangeText={setSearchQuery}
                         value={searchQuery}
                         placeholder="Tìm kiếm"
-                        onFocus={() => setIsFocus(true)}
-                        onBlur={() => setIsFocus(false)}
-                        returnKeyType="search"
-                        onSubmitEditing={handleSearchArticle}
+                        onFocus={() => setIsForus(true)}
+                        onBlur={() => setIsForus(false)}
                     />
                     {isFocus && (
                         <Feather onPress={() => setSearchQuery('')} name="x" size={24} color="gray" style={{ position: "absolute", right: 10 }} />
@@ -129,33 +67,20 @@ const Forum = () => {
                 </View>
             </View>
             <View style={styles.container}>
-                <TouchableOpacity style={styles.questionContainer} onPress={() => isLogin ? navigation.navigate('PostForm') : setIsShowModal(true)}>
+                <TouchableOpacity style={styles.questionContainer} onPress={() => navigation.navigate('PostProduct')}>
                     <Image
                         source={{ uri: "https://res.cloudinary.com/dofj1px4t/image/upload/v1718762351/Tr%E1%BB%A3%20N%C3%B4ng%204.0/pngwing.com_vnwxtx.png" }}
                         style={styles.userAvatar}
                     />
-                    <Text style={styles.questionInput}>Bạn hãy đặt câu hỏi tại đây...</Text>
+                    <Text style={styles.questionInput}>Bạn muốn đăng bán gì?</Text>
                     <MaterialCommunityIcons name="image-plus" size={24} color="#009432" />
                 </TouchableOpacity>
-
-                {isloading ? (
-                    <Loading />
-                ) : (
-                    <>
-
-                        <Hastag onHashtagPress={onHashtagPress} />
-                        <ScrollView>
-                            {Array.isArray(list) && list.map((item) => (
-                                <Post key={item._id} item={item} notLogin={notLogin} />
-                            ))}
-                        </ScrollView></>)}
+               
             </View>
             <ModalInformLogin isShow={isShowModal} closeModal={closeModal} />
         </>
-    )
-}
-
-
+    );
+};
 
 const styles = StyleSheet.create({
     header: {
@@ -171,7 +96,7 @@ const styles = StyleSheet.create({
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 999
+        zIndex:999
     },
     logoContainer: {
         flex: 1,
@@ -181,7 +106,7 @@ const styles = StyleSheet.create({
         width: 500,
         height: 60,
         resizeMode: 'contain',
-
+ 
     },
     searchContainer: {
         alignItems: 'center',
@@ -234,4 +159,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Forum;
+export default FarmMaket;

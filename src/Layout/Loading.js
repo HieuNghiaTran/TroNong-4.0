@@ -1,11 +1,16 @@
-
 import React from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import LottieView from 'lottie-react-native';
 
 const Loading = () => {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#0000ff" />
+      <LottieView
+        source={require('../json/loading.json')}
+        autoPlay
+        loop
+        style={styles.lottie}
+      />
     </View>
   );
 };
@@ -15,6 +20,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  lottie: {
+    width: 50,
+    height: 50,
   },
 });
 

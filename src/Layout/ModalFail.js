@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Image, StyleSheet, View, TouchableOpacity } from 'react-native';
-import { Modal, Text, Button } from 'react-native-paper';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Modal, Text } from 'react-native-paper';
 import { useNavigation } from "@react-navigation/native";
-const ModalInformLogin = ({ isShow, closeModal, index }) => {
+
+const ModalFail = ({ isShow, closeModal,mes }) => {
     const [visible, setVisible] = useState(false);
     const navigation = useNavigation();
 
@@ -14,24 +14,24 @@ const ModalInformLogin = ({ isShow, closeModal, index }) => {
     const hideModal = () => {
         setVisible(false);
         closeModal();
-    };
-
-    const handleSave = () => {
-        navigation.navigate('Login')
+       
     };
 
     return (
         <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={styles.containerStyle}>
             <View style={styles.header}>
-                <FontAwesome name="warning" size={24} color="#ffc107" />
-                <Text style={styles.headerText}>Lưu ý</Text>
+                <Image
+                    source={{ uri: "https://res.cloudinary.com/dofj1px4t/image/upload/v1722864120/products/cross_t6vxj5.png" }}
+                    style={styles.image}
+                />
             </View>
             <View style={styles.content}>
-                <Text style={styles.contentText}>Hãy đăng nhập hoặc tạo tài khoản mới</Text>
-                <TouchableOpacity style={styles.button} onPress={handleSave}>
-                    <Text style={styles.buttonText}>Đồng ý</Text>
-                </TouchableOpacity>
+                <Text style={styles.titleText}>Lỗi</Text>
+                <Text style={styles.messageText}>{mes}</Text>
             </View>
+            <TouchableOpacity style={styles.button} onPress={hideModal}>
+                <Text style={styles.buttonText}>Đóng</Text>
+            </TouchableOpacity>
         </Modal>
     );
 };
@@ -43,26 +43,32 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         borderRadius: 10,
         width: '80%', 
-        alignSelf: 'center'
+        alignSelf: 'center',
+        alignItems: 'center',
+        elevation: 5, 
     },
     header: {
-        flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 20,
     },
-    headerText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginLeft: 10,
-        color: '#ffc107',
+    image: {
+        width: 60,
+        height: 60,
+        resizeMode: 'contain',
     },
     content: {
         alignItems: 'center',
+        marginBottom: 20,
     },
-    contentText: {
+    titleText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    messageText: {
         fontSize: 16,
         textAlign: 'center',
-        marginBottom: 20,
+        color: '#555',
     },
     button: {
         backgroundColor: '#009432',
@@ -75,5 +81,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
 });
-
-export default ModalInformLogin;
+export default ModalFail;

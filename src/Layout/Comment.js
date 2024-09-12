@@ -1,38 +1,83 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, StatusBar, Image, TouchableOpacity, TextInput } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import React, { useContext, useEffect, useState } from 'react';
+import { View, StyleSheet, Text, StatusBar, Image, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { MaterialIcons } from '@expo/vector-icons';
 import Post from "./Post";
 import Entypo from '@expo/vector-icons/Entypo';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { CommentArticle } from '../Services/ArticleServices';
+import { UserContext } from '../Context/authContext';
+import { getUserById } from '../Services/UserServies';
+import ModalInformLogin from './ModalInformLogin';
+import moment from 'moment';
+import 'moment/locale/vi'; 
+moment.locale('vi');
 
 const Comment = ({ id }) => {
     const navigation = useNavigation();
     const [isShowReply, setIsShowReply] = useState(false);
+    const [newComment, setNewComment] = useState('');
+    const [commentUsers, setCommentUsers] = useState({});
+    const { user } = useContext(UserContext);
+    const route = useRoute();
+    let { article } = route.params || false;
+    const [isShowModal, setIsShowModal] = useState(false);
+    const closeModal = () => {
+        setIsShowModal(false);
+    };
 
-    // Sample user data
-    const comments = [
-        {
-            id: 1,
-            user: {
-                name: 'Author Name',
-                avatar: 'https://via.placeholder.com/40'
-            },
-            text: 'This is a sample comment text.',
-            timestamp: '1 tiếng trước'
-        },
-        {
-            id: 2,
-            user: {
-                name: 'Another Author',
-                avatar: 'https://via.placeholder.com/40'
-            },
-            text: 'Another sample comment.',
-            timestamp: '2 tiếng trước'
+    useEffect(() => {
+        const fetchUserNames = async () => {
+            const users = {};
+            for (const comment of article.comment) {
+                const userId = comment.user_id;
+                if (!users[userId]) {
+                    try {
+                        const response = await getUserById(userId);
+                        users[userId] = {
+                            fullname: response.data.fullname,
+                            avatar: response.data.avatar
+                        };
+                    } catch (error) {
+                        console.error( error);
+                        users[userId] = {
+                            fullname: 'Unknown User',
+                            avatar: null
+                        };
+                    }
+                }
+            }
+            setCommentUsers(users);
+        };
+        fetchUserNames();
+    }, [article]);
+
+    useEffect(()=>{if(user)setIsShowModal(false)},[user])
+    const formatTimestamp = (timestamp) => {
+        return moment(timestamp).fromNow();
+    };
+    
+    const handleAddComment = async () => {
+      if(user){
+        if (newComment.trim()) {
+            const data = {
+                _id: article._id,
+                user_id: user._id,
+                comment: newComment,
+                timestamp: new Date(),
+            };
+            let res = await CommentArticle(data)
+            console.log(res.data)
+            setNewComment('');
         }
-    ];
+
+
+      }else{
+        setIsShowModal(true)
+      }
+    };
 
     const styles = StyleSheet.create({
         header: {
@@ -107,13 +152,11 @@ const Comment = ({ id }) => {
             color: '#130f40',
             marginLeft: 5,
         },
-        // Reply section styles
         replyContainer: {
             marginTop: 10,
             padding: 10,
             backgroundColor: '#f9f9f9',
             borderRadius: 8,
-
         },
         replyInputContainer: {
             flexDirection: 'row',
@@ -135,7 +178,26 @@ const Comment = ({ id }) => {
         },
         sendIcon: {
             marginLeft: 10,
-        }
+        },
+        newCommentContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 10,
+            backgroundColor: '#fff',
+            borderTopWidth: 1,
+            borderTopColor: '#ddd',
+        },
+        newCommentInput: {
+            flex: 1,
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 20,
+            paddingHorizontal: 10,
+            height: 40,
+        },
+        newCommentButton: {
+            marginLeft: 10,
+        },
     });
 
     return (
@@ -151,59 +213,76 @@ const Comment = ({ id }) => {
             </View>
 
             <View style={styles.container}>
-                <Post />
+                <ScrollView>
+                    <Post item={article} isComment={true} />
 
-                {comments.map(comment => (
-                    <View key={comment.id} style={styles.commentItem}>
-                        <Image source={{ uri: comment.user.avatar }} style={styles.avatar} />
-                        <View style={styles.commentContent}>
-                            <Text style={styles.author}>{comment.user.name}</Text>
-                            <Text style={styles.commentText}>{comment.text}</Text>
-                            <View style={styles.commentFooter}>
-                                <Entypo name="back-in-time" size={13} color="#130f40" />
-                                <Text style={styles.timestamp}>{comment.timestamp}</Text>
+                    {article.comment.map(comment => (
+                        <View key={comment.id} style={styles.commentItem}>
+                            <Image
+                                source={{ uri: commentUsers[comment.user_id]?.avatar || 'https://res.cloudinary.com/dofj1px4t/image/upload/v1723726475/products/user_m4yk84.png' }} // Use a default avatar if none is available
+                                style={styles.avatar}
+                            />
+                            <View style={styles.commentContent}>
+                                <Text style={styles.author}>{commentUsers[comment.user_id]?.fullname || 'Loading...'}</Text>
+                                <Text style={styles.commentText}>{comment.comment}</Text>
+                                <View style={styles.commentFooter}>
+                                    <Entypo name="back-in-time" size={13} color="#130f40" />
+                                    <Text style={styles.timestamp}>{formatTimestamp(comment.timestamp)}</Text>
 
-                                <AntDesign name="like2" size={15} color="#130f40" />
-                                <TouchableOpacity style={{ marginLeft: 1, marginRight: 10 }}>
-                                    <Text style={styles.replyText}>Thích</Text>
-                                </TouchableOpacity>
-                                <Entypo name="reply" size={15} color="#130f40" />
-                                <TouchableOpacity style={{ marginLeft: 1 }} onPress={() => setIsShowReply(!isShowReply)}>
-                                    <Text style={styles.replyText}>Phản hồi</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            {isShowReply && (
-                                <View style={styles.replyContainer}>
-                                  {/* <View>
-                                  <Feather
-                                        onPress={() => { setIsShowReply(false) }}
-                                        name="x"
-                                        size={24}
-                                        color="gray"
-                                        style={styles.closeIcon}
-                                    />
-                                  </View>   */}
-                                    <View style={styles.replyInputContainer}>
-                                        <Image source={{ uri: comment.user.avatar }} style={styles.avatar} />
-                                        <TextInput
-                                            placeholder='Viết trả lời'
-                                            style={styles.replyInput}
-                                        />
-                                        <Ionicons
-                                            name="send"
-                                            size={24}
-                                            color="black"
-                                            style={styles.sendIcon}
-                                        />
-                                    </View>
+                                    <AntDesign name="like2" size={15} color="#130f40" />
+                                    <TouchableOpacity style={{ marginLeft: 1, marginRight: 10 }}>
+                                        <Text style={styles.replyText}>Thích</Text>
+                                    </TouchableOpacity>
+                                    <Entypo name="reply" size={15} color="#130f40" />
+                                    <TouchableOpacity style={{ marginLeft: 1 }} onPress={() => setIsShowReply(!isShowReply)}>
+                                        <Text style={styles.replyText}>Phản hồi</Text>
+                                    </TouchableOpacity>
                                 </View>
-                            )}
 
+                                {isShowReply && (
+                                    <View style={styles.replyContainer}>
+                                        <View>
+                                            <Feather
+                                                onPress={() => { setIsShowReply(false) }}
+                                                name="x"
+                                                size={24}
+                                                color="gray"
+                                                style={styles.closeIcon}
+                                            />
+                                        </View>
+                                        <View style={styles.replyInputContainer}>
+                                            <Image source={{ uri: commentUsers[comment.user_id]?.avatar || 'default_avatar_url' }} style={styles.avatar} />
+                                            <TextInput
+                                                placeholder='Viết trả lời'
+                                                style={styles.replyInput}
+                                            />
+                                            <Ionicons
+                                                name="send"
+                                                size={24}
+                                                color="black"
+                                                style={styles.sendIcon}
+                                            />
+                                        </View>
+                                    </View>
+                                )}
+                            </View>
                         </View>
-                    </View>
-                ))}
+                    ))}
+                </ScrollView>
             </View>
+
+            <View style={styles.newCommentContainer}>
+                <TextInput
+                    placeholder="Viết bình luận..."
+                    style={styles.newCommentInput}
+                    value={newComment}
+                    onChangeText={setNewComment}
+                />
+                <TouchableOpacity onPress={handleAddComment} style={styles.newCommentButton}>
+                    <Ionicons name="send" size={24} color="#009432" />
+                </TouchableOpacity>
+            </View>
+            <ModalInformLogin isShow={isShowModal} closeModal={closeModal} />
         </>
     );
 }

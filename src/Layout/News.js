@@ -1,13 +1,13 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import React, { useState } from "react";
-import { StyleSheet, View, Text, ScrollView, TextInput, TouchableOpacity, StatusBar, useWindowDimensions, Image, FlatList } from 'react-native';
-import CheckBox from 'react-native-check-box';
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, ScrollView, TextInput, TouchableOpacity, StatusBar, useWindowDimensions, Image, FlatList, Dimensions } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ModalSuccess from "./ModalSucces";
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-
+import VideoItem from './VideoItem';
+import axios from 'axios';
 const News = () => {
     let data = [
         { id: 1, title: "Nông dân sáng chế ra máy gặt đập liên hợp thông minh", view: "12", img: "https://picsum.photos/200/300", time: "12/02/2024" },
@@ -66,11 +66,44 @@ const News = () => {
 };
 
 const Video = () => {
+    const [videos, setVideos] = useState([]);
+
+    const { height } = Dimensions.get('window');
+    const API_KEY = 'ozHtw2fnDv8PrFJmkK07qoBIqHj0kbl5Sq7gpDe9n7UclN4O94VcKwAE';
+
+    useEffect(() => {
+        axios
+            .get('https://api.pexels.com/videos/popular', {
+                headers: {
+                    Authorization: API_KEY,
+                },
+            })
+            .then(response => {
+                setVideos(response.data.videos);
+                console.log(videos)
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }, []);
+
     return (
-        <>
-        </>
+
+        <View style={{flex:1}}>
+            <FlatList
+                data={videos}
+                renderItem={({ item }) => <VideoItem video={{ uri: item.video_files[0].link, title: item.user.name }} />}
+                keyExtractor={(item, index) => index.toString()}
+                snapToInterval={height}
+                decelerationRate="fast"
+                showsVerticalScrollIndicator={false}
+            />
+
+        </View>
     );
 };
+
+
 
 const Tintuc = () => {
     const layout = useWindowDimensions();
@@ -129,6 +162,7 @@ const Tintuc = () => {
 const styles = StyleSheet.create({
     tabContainer: {
         flex: 1,
+        position:"relative"
     },
     Toparticle: {
         padding: 15,
@@ -157,9 +191,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between"
     },
-    container: {
-        backgroundColor: '#f7f7f7',
-    },
+   
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
